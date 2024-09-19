@@ -1,0 +1,97 @@
+.styled-table 
+{
+    border-collapse: collapse;
+    border: 1px solid #d8d5d5;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.styled-table thead tr 
+{
+    background-color: #0c68d1;
+    color: #ffffff;
+    text-align: left;
+    height: 10px;
+}
+
+.styled-table th,
+.styled-table td 
+{
+    padding: 2px 2px;
+}
+
+.styled-table tbody tr 
+{
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) 
+{
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type 
+{
+    border-bottom: 2px solid #0a6ec0;
+}
+
+.styled-table tbody tr.active-row 
+{
+    font-weight: bold;
+    color: #074db6;
+}
+
+/* Edgar */
+
+.edgar-total-footer {
+    background-color: #3F52B5;
+    color: #F3B75D;
+    text-align: right;
+    font-weight: bold;
+    font-size: 14px;
+    border-style: none;
+    vertical-align: middle;
+    padding-top: 10px;
+}
+
+.edgar-background-footer {
+    color: #3F52B5;
+    text-align: right;
+    font-weight: bold;
+    border-style: none;
+    font-size: 14px;
+    padding-top: 10px;
+}
+
+.ClaseBorrarFila {
+    color:red;
+    border-style: none;
+    background-color: transparent;
+}
+
+.sin-border {
+    border: 0;
+    box-shadow: none;
+    height: 30px;
+}
+
+table.table-hover-edgar tbody tr:hover {
+    background-color: #ed5a68;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.tblcssPares{
+    background-color: #bae0ef 
+}
+
+.tblcssNones{
+    background-color: #f7ecc3
+}
+
+.filaSelected td
+{
+    background-color:#E70C11 !important;
+    color: white;
+}

@@ -1,0 +1,32 @@
+# Composer
+/backup/
+/design/
+/tmp/
+/vendor/
+/admin/backup/
+/admin/design/
+/admin/includes/backblaze/
+/admin/includes/chumper/
+/admin/includes/spaties/
+/admin/premium/
+/admin/scss/
+/admin/tcpdf/
+/admin/test/
+/admin/tmp/
+
+# Logs
+*.log
+
+# Session files
+/sessions/
+
+# IDE files
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración local
+.env
