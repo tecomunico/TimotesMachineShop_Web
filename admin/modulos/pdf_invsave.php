@@ -6,7 +6,13 @@ include_once(DIR_INCLUDES.'clase.conexion.inc');
 include_once(DIR_INCLUDES.'inc_tablas.inc');
 include_once(DIR_INCLUDES.'inc_parametros.inc');
 include_once(DIR_INCLUDES.'inc_funciones.inc');
-ob_end_clean();
+
+// Verificar si hay un buffer de salida activo antes de limpiarlo
+if (ob_get_length())
+{
+    ob_end_clean();
+}
+
 // Consulta BD
 $myQuery_b= "SELECT
     db_parametros.id, 
@@ -21,7 +27,6 @@ $mi_consulta->ejecutar_consulta($myQuery_b);
 $records=$mi_consulta->valores_campo();
 $parm_footer = $records['prm_invoicefooter'];
 $parm_terms = $records['prm_invoiceterms'];
-$parm_color = hexToRgb($records['prm_invoice_color']);
 //
 $myQuery= "SELECT
     db_invoice_d.invoice_item AS invoiceItem,
@@ -56,9 +61,10 @@ $tabla=$mi_consulta->ejecutar_consulta($myQuery);
 $registros=$mi_consulta->total_registros();
 // Inicializamos Clase
 include_once(DIR_PDF.'tcpdf.php');
-include_once(DIR_PDF.'tcpdf_include.php');
+// include_once(DIR_PDF.'tcpdf_include.php');
 //
-class MYPDF extends TCPDF {
+class MYPDF extends TCPDF 
+{
     public function Header()
     {
         // Logo
@@ -125,35 +131,34 @@ class MYPDF extends TCPDF {
     }
 
     public $isLastPage = false;
+    
     // Page footer
     public function Footer() 
     {
-        $borde=0;
-        if($this->varConFooter)
-        {
+        $borde = 0;
+        if ($this->varConFooter) {
             $this->SetY(-75);
             $this->SetX(8);
             $this->SetAlpha(0.7);
             // Set font
             $this->SetFont('helvetica', 'B', 8);
             // Notes
-            $this->Cell(50, 4, 'Notes',$borde,1);
+            $this->Cell(50, 4, 'Notes', $borde, 1);
             $this->SetX(8);
             $this->SetFont('helvetica', 'I', 8);
-            $this->Cell(50, 4, $this->varParametroFooter,$borde,1);
-            $this->Ln(2);
-            $this->SetX(8);
+            $this->writeHTMLCell(0, 0, '', '', $this->varParametroFooter, 0, 0, false, false, 'J', false);
+            $this->Ln(8);
+            $this->SetX(2);
             $this->SetFont('helvetica', 'B', 8);
-            $this->Cell(50, 4, 'Terms and Conditions',$borde,1);
             $this->Ln(1);
             $this->SetX(8);
             $this->SetFont('helvetica', 'I', 8);
-            $this->writeHTMLCell(0, 0, '', '', $this->varParametroTerms, 0, 0, false, false,'J', false);
+            $this->writeHTMLCell(0, 0, '', '', $this->varParametroTerms, 0, 0, false, false, 'J', false);
             $this->SetAlpha(1);
         }
         // Page number
         $this->SetY(-15);
-        $this->Cell(0, 10, $this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
+        $this->Cell(0, 10, $this->getAliasNumPage() . '/' . $this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
     public function lastPage($resetmargins=false) 
@@ -174,8 +179,9 @@ $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
 $pdf->SetHeaderMargin(10);
 $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO); 
-$pdf->setLanguageArray($l);
+$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+// Variables
 // Variables
 $pdf->varConFooter=true;
 $pdf->varConHeader=true;
@@ -192,8 +198,11 @@ $pdf->varDireccion=$filafila['invoiceAddress'];
 $pdf->varReferencia=$filafila['invoiceRef'];
 $pdf->varTelefono=$filafila['invoicePhone'];
 $pdf->varEmail=$filafila['invoiceCorreo'];
-$bordes_head = array('TB' => array('width' => 0.50, 'cap' => 'square', 'join' => 'miter', 'dash' => 0, 'color' => array($parm_color[r],$parm_color[g],$parm_color[b])));
-$bordes_body = array('B' => array('width' => 0.05, 'cap' => 'square', 'join' => 'miter', 'dash' => 0, 'color' => array(234,234,234)));
+
+// Definir bordes
+$bordes_head = array('TB' => array('width' => 0.50, 'cap' => 'square', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0)));
+$bordes_body = array('B' => array('width' => 0.05, 'cap' => 'square', 'join' => 'miter', 'dash' => 0, 'color' => array(234, 234, 234)));
+
 $pdf->AddPage();
 if($_POST['iCliente__InvoicePaid'] == "Y")
 {
@@ -206,15 +215,18 @@ $pdf->SetFont('times', '', 11);
 $pdf->SetY(70);
 $pdf->Ln(5);
 $pdf->SetX(4);
-$pdf->MultiCell(1,8,"",$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(24,8,"# Item",$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(120,8,'Job Description',$bordes_head,'L',0,0,'','','','','','','','M');
-$pdf->MultiCell(20,8,'Qty.',$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(20,8,'Amount',$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(20,8,'SubTotal',$bordes_head,'C',0,1,'','','','','','','','M');
+
+// Encabezados de la tabla
+$pdf->MultiCell(1, 8, "", $bordes_head, 'C', 0, 0);
+$pdf->MultiCell(24, 8, "# Item", $bordes_head, 'C', 0, 0);
+$pdf->MultiCell(120, 8, 'Job Description', $bordes_head, 'L', 0, 0);
+$pdf->MultiCell(20, 8, 'Qty.', $bordes_head, 'C', 0, 0);
+$pdf->MultiCell(20, 8, 'Amount', $bordes_head, 'C', 0, 0);
+$pdf->MultiCell(20, 8, 'SubTotal', $bordes_head, 'C', 0, 1);
 $pdf->SetFillColor(255,255,255);
 $pdf->SetTextColor(0,0,0);
 $pdf->SetFont('times', '', 10);
+
 // Records
 $contador=0;
 $total=0;
@@ -222,33 +234,23 @@ $taxSi=$TaxTasa=$TaxTotal=$TotalTotal="";
 while ($fila = mysqli_fetch_assoc($tabla)) 
 {
     $pdf->SetX(4);
-    $taxSi= $fila['invoiceTaxesYes'];
-    $TaxTasa= "Taxes (".$fila['invoiceTaxTasa']."%)";
-    $TaxTotal= $fila['invoiceTaxTotal'];
-    $TotalTotal= $fila['invoiceTotal'];
-    $pdf->MultiCell(25,8,$fila['invoiceItem'],$bordes_body,'C',0,0,'','','','','','','','M');
-    $pdf->MultiCell(120,8,$fila['invoiceJob'],$bordes_body,'L',0,0,'','','','','','','','M');
-    if($fila['invoiceCantidad']>0)
-    {
-        $pdf->MultiCell(20,8,$fila['invoiceCantidad'],$bordes_body,'C',0,0,'','','','','','','','M');
-    }else{
-        $pdf->MultiCell(20,8,"",$bordes_body,'C',0,0,'','','','','','','','M');
-    }
-    if($fila['invoicePrecio']>0)
-    {
-        $pdf->MultiCell(20,8,"$".number_format($fila['invoicePrecio'],2),$bordes_body,'R',0,0,'','','','','','','','M');
-    }else{
-        $pdf->MultiCell(20,8,"",$bordes_body,'R',0,0,'','','','','','','','M'); 
-    }
-    if($fila['invoiceCantidad']>0 or $fila['invoicePrecio']>0)
-    {
-        $pdf->MultiCell(18,8,"$".number_format($fila['invoiceCantidad']*$fila['invoicePrecio'],2),$bordes_body,'R',0,0,'','','','','','','','M');
-        $total=$total+($fila['invoiceCantidad']*$fila['invoicePrecio']);
-    }else{
-        $pdf->MultiCell(18,8,"",$bordes_body,'R',0,0,'','','','','','','','M'); 
-    }
-    $pdf->MultiCell(2,8,'',$bordes_body,'C',0,1,'','','','','','','','M');
+    $taxSi = $fila['invoiceTaxesYes'];
+    $TaxTasa = "Taxes (" . (float)$fila['invoiceTaxTasa'] . "%)";
+    $TaxTotal = (float)$fila['invoiceTaxTotal'];
+    $TotalTotal = (float)$fila['invoiceTotal'];
+    $cantidad = (float)$fila['invoiceCantidad'];
+    $precio = (float)$fila['invoicePrecio'];
+    $totalAmount = $cantidad * $precio;
+
+    // Imprimir los valores de cada columna
+    $pdf->MultiCell(25, 8, $fila['invoiceItem'], $bordes_body, 'C', 0, 0);
+    $pdf->MultiCell(120, 8, $fila['invoiceJob'], $bordes_body, 'L', 0, 0);
+    $pdf->MultiCell(20, 8, $cantidad > 0 ? $cantidad : "", $bordes_body, 'C', 0, 0);
+    $pdf->MultiCell(20, 8, $precio > 0 ? "$" . number_format($precio, 2) : "", $bordes_body, 'R', 0, 0);
+    $pdf->MultiCell(18, 8, $cantidad > 0 || $precio > 0 ? "$" . number_format($totalAmount, 2) : "", $bordes_body, 'R', 0, 1);
+    $total += $totalAmount;
     $pdf->Ln(0.5);
+
     if(($contador==13) and ($registros>1))
     {
         $pdf->AddPage();
@@ -263,12 +265,13 @@ while ($fila = mysqli_fetch_assoc($tabla))
         $pdf->SetY(70);
         $pdf->Ln(5);
         $pdf->SetX(4);
-        $pdf->MultiCell(1,8,"",$bordes_head,'C',0,0,'','','','','','','','M');
-        $pdf->MultiCell(24,8,"# Item",$bordes_head,'C',0,0,'','','','','','','','M');
-        $pdf->MultiCell(120,8,'Job Description',$bordes_head,'L',0,0,'','','','','','','','M');
-        $pdf->MultiCell(20,8,'Qty.',$bordes_head,'C',0,0,'','','','','','','','M');
-        $pdf->MultiCell(20,8,'Amount',$bordes_head,'C',0,0,'','','','','','','','M');
-        $pdf->MultiCell(20,8,'SubTotal',$bordes_head,'C',0,1,'','','','','','','','M');
+        // Encabezados de la tabla
+        $pdf->MultiCell(1, 8, "", $bordes_head, 'C', 0, 0);
+        $pdf->MultiCell(24, 8, "# Item", $bordes_head, 'C', 0, 0);
+        $pdf->MultiCell(120, 8, 'Job Description', $bordes_head, 'L', 0, 0);
+        $pdf->MultiCell(20, 8, 'Qty.', $bordes_head, 'C', 0, 0);
+        $pdf->MultiCell(20, 8, 'Amount', $bordes_head, 'C', 0, 0);
+        $pdf->MultiCell(20, 8, 'SubTotal', $bordes_head, 'C', 0, 1);
         $pdf->SetFillColor(255,255,255);
         $pdf->SetTextColor(0,0,0);
         $pdf->SetFont('times', '', 10);
@@ -280,32 +283,28 @@ while ($fila = mysqli_fetch_assoc($tabla))
         $registros--;
     }
 }
-// $pdf->Ln(5);
-if($taxSi == "Y")
-{
-    $pdf->SetTextColor(0,0,0); 
-    $pdf->SetFillColor(255,255,255);
+// Mostrar totales
+if ($taxSi == "Y") {
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetFillColor(255, 255, 255);
     $pdf->SetX(4);
-    $pdf->Cell(185,8,'Sub-Total',0,0,'R',1);
-    $pdf->Cell(18,8,money_format('%.2n',$total),0,0,'R',1);
-    $pdf->Cell(2,8,'',0,1,'C',1);
+    $pdf->Cell(185, 8, 'Sub-Total', 0, 0, 'R', 1);
+    $pdf->Cell(18, 8, number_format($total, 2), 0, 0, 'R', 1);
+    $pdf->Cell(2, 8, '', 0, 1, 'C', 1);
     $pdf->SetX(4);
-    $pdf->Cell(185,8,$TaxTasa,0,0,'R',1);
-    $pdf->Cell(18,8,money_format('%.2n',$TaxTotal),0,0,'R',1);
-    $pdf->Cell(2,8,'',0,1,'C',1);
+    $pdf->Cell(185, 8, $TaxTasa, 0, 0, 'R', 1);
+    $pdf->Cell(18, 8, number_format($TaxTotal, 2), 0, 0, 'R', 1);
+    $pdf->Cell(2, 8, '', 0, 1, 'C', 1);
 }
 $pdf->SetX(4);
-// Set font
 $pdf->SetFont('times', 'B', 14);
-$pdf->SetFillColor(255,255,255);
-$pdf->SetTextColor(0,0,0);
-$pdf->MultiCell(150,8,"","",'R',0,0,'','','','','','','','M');
-$pdf->MultiCell(30,8,"Total",$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(25,8,money_format('%.2n',$TotalTotal),$bordes_head,'C',0,0,'','','','','','','','M');
-$pdf->MultiCell(2,8,"",$bordes_body,'C',0,1,'','','','','','','','M');
-// Directorio
-$var_ruta=dirname(__FILE__,2).'/tmp/';
-// Generar Archivo
-$pdf->Output($var_ruta."invoice_".$_POST['InvEmailID'].".pdf",'F',1);
+$pdf->SetFillColor(255, 255, 255);
+$pdf->SetTextColor(0, 0, 0);
+$pdf->MultiCell(150, 8, "", '', 'R', 0, 0);
+$pdf->MultiCell(30, 8, "Total", $bordes_head, 'C', 0, 0);
+$pdf->MultiCell(25, 8, number_format($TotalTotal, 2), $bordes_head, 'C', 0, 0);
+
+// Generar PDF
+$pdf->Output(DIR_TEMP . "invoice_" . $_POST['InvEmailID'] . ".pdf", 'F', 1);
 $pdf->Close();
 ?>
